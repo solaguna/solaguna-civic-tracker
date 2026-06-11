@@ -76,7 +76,30 @@ def evaluate_alerts_and_summarize(text, meeting_name, subscribers, api_key):
     }
     
     system_prompt = "You are a non-partisan civic watchdog. Read the agenda and provide an executive summary highlighting the most impactful items for local residents."
-    prompt = f"Please read the following agenda and write a concise, highly digestible executive summary. **You must format your response strictly as an HTML bulleted list (using <ul> and <li> tags).** Highlight the 3-5 most important items. Do not use Markdown formatting, only HTML tags.\n\nAgenda Text:\n{text[:8000]}\n\nTASK: Evaluate the agenda against the following user alert topics. Return the index numbers of users whose topics are highly relevant to this agenda.\n\nUSERS:\n"
+    prompt = f"""Please read the following agenda and write a concise, highly digestible executive summary. **You must format your response strictly as an HTML bulleted list (using <ul> and <li> tags).** Highlight the 3-5 most important items. Do not use Markdown formatting, only HTML tags.
+
+CRITICAL INSTRUCTION FOR EEAT:
+For EACH <li> item in your summary, if the text mentions a specific physical address in Laguna Beach OR an APN (Assessor's Parcel Number, e.g., 496-035-01), you MUST append an HTML div block containing Action Pills at the end of the <li> content.
+
+If an ADDRESS is mentioned, include:
+<div class="action-pills">
+  <a href="https://www.google.com/maps/search/?api=1&query=[URL_ENCODED_ADDRESS]+Laguna+Beach+CA" target="_blank" class="pill-btn">📍 Google Maps</a>
+  <a href="https://gis.lagunabeachcity.net/Html5Viewer/index.html?viewer=LagunaBeachPublicGIS" target="_blank" class="pill-btn">🗺️ City GIS</a>
+
+If an APN is ALSO mentioned, add these two buttons inside that same <div class="action-pills">:
+  <a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CPlanning%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22[APN]%22%7D" target="_blank" class="pill-btn">📄 Planning Files</a>
+  <a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CBuilding%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22[APN]%22%7D" target="_blank" class="pill-btn">🏗️ Building Files</a>
+</div>
+
+Ensure [URL_ENCODED_ADDRESS] and [APN] are replaced with the actual data from the text.
+
+Agenda Text:
+{text[:8000]}
+
+TASK: Evaluate the agenda against the following user alert topics. Return the index numbers of users whose topics are highly relevant to this agenda.
+
+USERS:
+"""
     
     for i, sub in enumerate(subscribers):
         prompt += f"[{i}] {sub['topics']}\n"
