@@ -75,9 +75,8 @@ def evaluate_alerts_and_summarize(text, meeting_name, subscribers, api_key):
         "Authorization": f"Bearer {api_key}"
     }
     
-    prompt = f"Analyze the following civic agenda for '{meeting_name}'.\n\nAGENDA TEXT:\n{text[:8000]}\n\n"
-    prompt += "TASK 1: Provide a simple, digestible 2-3 sentence executive summary of the agenda.\n"
-    prompt += "TASK 2: Evaluate the agenda against the following user alert topics. Return the index numbers of users whose topics are highly relevant to this agenda.\n\nUSERS:\n"
+    system_prompt = "You are a non-partisan civic watchdog. Read the agenda and provide an executive summary highlighting the most impactful items for local residents."
+    prompt = f"Please read the following agenda and write a concise, highly digestible executive summary. **You must format your response strictly as an HTML bulleted list (using <ul> and <li> tags).** Highlight the 3-5 most important items. Do not use Markdown formatting, only HTML tags.\n\nAgenda Text:\n{text[:8000]}\n\nTASK: Evaluate the agenda against the following user alert topics. Return the index numbers of users whose topics are highly relevant to this agenda.\n\nUSERS:\n"
     
     for i, sub in enumerate(subscribers):
         prompt += f"[{i}] {sub['topics']}\n"
