@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Engine | SoLaguna</title>
+    
+    <!-- OpenGraph & Twitter SEO -->
+    <meta property="og:title" content="Civic Fact Check | SoLaguna Neighborhood Association">
+    <meta property="og:description" content="A resident-funded, AI-powered fact-checking engine for Laguna Beach city government and local news.">
+    <meta property="og:url" content="https://solaguna.com/fact-check/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SoLaguna">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Civic Fact Check | SoLaguna">
+    <meta name="twitter:description" content="AI-powered fact-checking engine for Laguna Beach.">
+
+    <!-- E-E-A-T AI SEO Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://solaguna.com/#organization",
+          "name": "SoLaguna Neighborhood Association",
+          "url": "https://solaguna.com",
+          "email": "michael@solaguna.com",
+          "logo": "https://solaguna.com/wp-content/uploads/2025/10/solaguna-logo.png"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://solaguna.com/fact-check/#webpage",
+          "url": "https://solaguna.com/fact-check/",
+          "name": "Civic Fact Check | SoLaguna",
+          "description": "AI-powered fact-checking engine verifying local government claims, council actions, and municipal documents in Laguna Beach, CA.",
+          "publisher": { "@id": "https://solaguna.com/#organization" }
+        }
+      ]
+    }
+    </script>
+    
+    <!-- Schema injection container for ClaimReview -->
+    <div id="schema-container"></div>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #091c2b; /* Deep Navy */
+            --text-muted: #4a5568;
+            --accent: #4ab58e; /* Teal */
+            --border: #e2e8f0;
+            --font-main: 'Inter', system-ui, sans-serif;
+            --v-true: #10b981;
+            --v-false: #ef4444;
+            --v-misleading: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 80px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        /* Layout: Sidebar + Main Content */
+        .layout-wrapper {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 50px;
+            width: 100%;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .layout-wrapper {
+                display: flex;
+                flex-direction: column;
+            }
+            .sidebar {
+                order: 2;
+            }
+            .main-content {
+                order: 1;
+            }
+        }
+
+        /* Sidebar: Trending Queries & Donation */
+        .sidebar {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            position: sticky;
+            top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .sidebar-section h3 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-section h3 svg {
+            color: var(--accent);
+        }
+
+        .trending-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .trending-item {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            padding: 12px 15px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .trending-item svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .status-verified svg { color: var(--v-true); }
+        .status-misleading svg { color: var(--v-misleading); }
+
+        .trending-item:hover {
+            background: var(--text-main);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .trending-item:hover svg {
+            color: white;
+        }
+
+        /* Donation Box */
+        .donation-box {
+            background: linear-gradient(135deg, #091c2b, #1a365d);
+            padding: 20px;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+        }
+        
+        .donation-box h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .donation-box p {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .btn-donate {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            transition: opacity 0.2s;
+        }
+        
+        .btn-donate:hover { opacity: 0.9; }
+        
+        .btn-join {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        
+        .btn-join:hover { background: rgba(255,255,255,0.1); }
+
+        /* Search Header */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .header {
+            text-align: left;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Search Bar */
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100% !important;
+            padding: 20px 25px 20px 60px !important; 
+            font-size: 1.15rem !important;
+            border: 2px solid var(--border) !important;
+            border-radius: 50px !important;
+            background: var(--bg-card) !important;
+            color: var(--text-main) !important;
+            outline: none !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05) !important;
+            transition: all 0.3s !important;
+            font-family: var(--font-main) !important;
+            box-sizing: border-box !important;
+        }
+
+        /* SEO Category Pills */
+        .category-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .category-pill {
+            background: #f1f5f9;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .category-pill:hover {
+            background: var(--bg-card);
+            color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 4px 10px rgba(74, 181, 142, 0.1);
+        }
+
+        /* Autocomplete Dropdown */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: none;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .autocomplete-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-main);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover {
+            background: #f8fafc;
+            color: var(--accent);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(74, 181, 142, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            width: 24px;
+            height: 24px;
+            z-index: 2;
+        }
+
+        /* Loading State */
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(74, 181, 142, 0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .loading-text {
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Results UI (Grok Style) */
+        .results-container {
+            display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        .result-badge {
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 2px solid;
+            white-space: nowrap;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-main);
+        }
+
+        .key-details {
+            margin-bottom: 30px;
+        }
+
+        .key-details ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .key-details li {
+            position: relative;
+            padding-left: 20px;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .key-details li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .developments {
+            margin-bottom: 30px;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        /* Source Pills */
+        .sources-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .source-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .source-pill:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        .source-pill svg {
+            width: 14px;
+            height: 14px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container layout-wrapper">
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <h3>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    Trending Queries
+                </h3>
+                <div class="trending-list">
+                    <div class="trending-item status-verified" onclick="document.getElementById('queryInput').value='Egan Homestead'; performSearch('Egan Homestead');">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Egan Homestead
+                    </div>
+                    <div class="trending-item status-misleading" onclick="document.getElementById('queryInput').value='Forest Ave Trees'; performSearch('Forest Ave Trees');">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        Forest Ave Trees
+                    </div>
+                    <div class="trending-item status-verified" onclick="document.getElementById('queryInput').value='Tourist Spending'; performSearch('Tourist Spending');">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Tourist Spending
+                    </div>
+                </div>
+            </div>
+            
+            <div class="donation-box">
+                <h4>Support the Engine</h4>
+                <p>This proprietary indexing engine is funded entirely by residents. Help us maintain local truth.</p>
+                <a href="https://www.zeffy.com/en-US/donation-form/donate-to-change-our-future" target="_blank" class="btn-donate">Donate</a>
+                <a href="https://solaguna.com/join/" target="_blank" class="btn-join">Become a Member</a>
+            </div>
+        </div>
+
+        <!-- Main Search Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Civic Indexing Engine</h1>
+                <p>Search municipal records, local news, and public forums.</p>
+            </div>
+
+            <div class="search-box">
+                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" class="search-input" id="queryInput" placeholder="Ask anything (e.g., 'Egan Homestead', 'Fire Station 4')..." autocomplete="off">
+                <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+            </div>
+
+            <div class="category-pills">
+                <div class="category-pill" onclick="document.getElementById('queryInput').value='Capital Improvements'; performSearch('Capital Improvements');">Capital Improvements</div>
+                <div class="category-pill" onclick="document.getElementById('queryInput').value='City Council'; performSearch('City Council');">City Council</div>
+                <div class="category-pill" onclick="document.getElementById('queryInput').value='Planning Commission'; performSearch('Planning Commission');">Planning Commission</div>
+                <div class="category-pill" onclick="document.getElementById('queryInput').value='Village Entrance'; performSearch('Village Entrance');">Village Entrance</div>
+                <div class="category-pill" onclick="document.getElementById('queryInput').value='Promenade on Forest'; performSearch('Promenade on Forest');">Promenade on Forest</div>
+            </div>
+
+            <div class="loading-state" id="loadingState">
+                <div class="spinner"></div>
+                <div class="loading-text">Scanning Primary Sources...</div>
+            </div>
+
+            <div class="results-container" id="resultsContainer">
+                <div class="result-header">
+                    <div class="result-title" id="resTitle"></div>
+                    <div class="result-badge" id="resBadge"></div>
+                </div>
+
+                <div class="key-details">
+                    <div class="section-title">Key Details</div>
+                    <ul id="resDetails"></ul>
+                </div>
+
+                <div>
+                    <div class="section-title">Recent Developments</div>
+                    <div class="developments" id="resDevelopments"></div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <div class="section-title" style="font-size: 0.9rem;">Citations & Sources</div>
+                    <div class="sources-container" id="resSources"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('queryInput');
+        const loading = document.getElementById('loadingState');
+        const results = document.getElementById('resultsContainer');
+        const dropdown = document.getElementById('autocompleteDropdown');
+        const trendingList = document.querySelector('.trending-list');
+        let knownQueries = []; // Array of {query, verdict}
+
+        function addTrendingItemToDOM(query, verdict) {
+            const newItem = document.createElement('div');
+            if (verdict.toLowerCase().includes('false') || verdict.toLowerCase().includes('misleading')) {
+                newItem.className = 'trending-item status-misleading';
+                newItem.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> ${query}`;
+            } else {
+                newItem.className = 'trending-item status-verified';
+                newItem.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> ${query}`;
+            }
+            newItem.onclick = function() {
+                input.value = query;
+                performSearch(query);
+            };
+            trendingList.appendChild(newItem);
+        }
+
+        // Fetch global past queries on load
+        async function fetchPastQueries() {
+            try {
+                const response = await fetch('/wp-json/civic-engine/v1/queries');
+                if (response.ok) {
+                    knownQueries = await response.json();
+                    
+                    // Populate global trending list if we have data
+                    if (knownQueries && knownQueries.length > 0) {
+                        trendingList.innerHTML = ''; // clear default hardcoded
+                        knownQueries.forEach(item => {
+                            if(typeof item === 'object' && item.query) {
+                                addTrendingItemToDOM(item.query, item.verdict);
+                            } else if (typeof item === 'string') {
+                                // Fallback for old string logs
+                                addTrendingItemToDOM(item, 'Verified Context');
+                            }
+                        });
+                    }
+                }
+            } catch(e) { console.error('Failed to load global queries', e); }
+        }
+        fetchPastQueries();
+
+        // Autocomplete Logic
+        input.addEventListener('input', function() {
+            const val = this.value.toLowerCase();
+            dropdown.innerHTML = '';
+            
+            if (!val) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            const matches = knownQueries.filter(item => {
+                const q = typeof item === 'object' ? item.query : item;
+                return q.toLowerCase().includes(val);
+            });
+            
+            if (matches.length > 0) {
+                dropdown.style.display = 'block';
+                matches.forEach(matchObj => {
+                    const matchStr = typeof matchObj === 'object' ? matchObj.query : matchObj;
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> ${matchStr}`;
+                    div.onclick = function() {
+                        input.value = matchStr;
+                        dropdown.style.display = 'none';
+                        performSearch(matchStr);
+                    };
+                    dropdown.appendChild(div);
+                });
+            } else {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Hide dropdown on click outside
+        document.addEventListener('click', function(e) {
+            if (e.target !== input && e.target !== dropdown) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        input.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                dropdown.style.display = 'none';
+                performSearch(input.value);
+            }
+        });
+
+        function getColorForVerdict(verdict) {
+            const v = verdict.toLowerCase();
+            if(v.includes('true') || v.includes('verified')) return 'var(--v-true)';
+            if(v.includes('false')) return 'var(--v-false)';
+            return 'var(--v-misleading)';
+        }
+
+        function generateSchema(query, data) {
+            const schemaContainer = document.getElementById('schema-container');
+            if (schemaContainer) schemaContainer.innerHTML = ''; // clear old
+
+            const schema = {
+                "@context": "https://schema.org",
+                "@type": "ClaimReview",
+                "datePublished": new Date().toISOString(),
+                "url": window.location.href,
+                "author": {
+                    "@type": "Organization",
+                    "name": "SoLaguna Neighborhood Association",
+                    "url": "https://solaguna.com"
+                },
+                "claimReviewed": query,
+                "reviewRating": {
+                    "@type": "Rating",
+                    "ratingValue": data.verdict.toLowerCase().includes("true") || data.verdict.toLowerCase().includes("verified") ? "5" : (data.verdict.toLowerCase().includes("false") ? "1" : "3"),
+                    "bestRating": "5",
+                    "worstRating": "1",
+                    "alternateName": data.verdict
+                }
+            };
+
+            const script = document.createElement('script');
+            script.type = "application/ld+json";
+            script.text = JSON.stringify(schema);
+            if (schemaContainer) schemaContainer.appendChild(script);
+        }
+
+        async function performSearch(query) {
+            if(!query.trim()) return;
+
+            // UI Reset
+            results.style.display = 'none';
+            loading.style.display = 'block';
+
+            try {
+                // Pointing to the new WordPress REST API route
+                const response = await fetch('/wp-json/civic-engine/v1/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query })
+                });
+
+                let json;
+                try {
+                    json = await response.json();
+                } catch (parseErr) {
+                    const text = await response.text();
+                    alert("Server did not return valid JSON. Are your permalinks configured correctly? Response: " + text.substring(0, 100));
+                    loading.style.display = 'none';
+                    return;
+                }
+
+                if (!response.ok) {
+                    alert("Backend Error: " + (json.message || response.statusText || "Unknown error"));
+                    loading.style.display = 'none';
+                    return;
+                }
+                
+                if(json.error) {
+                    alert("Error: " + json.error);
+                    loading.style.display = 'none';
+                    return;
+                }
+
+                // Render Results
+                const data = json.data;
+                if (!data || !data.verdict) {
+                    alert("Error: Missing verdict in response. " + JSON.stringify(json).substring(0, 100));
+                    loading.style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('resTitle').textContent = query;
+                
+                const badge = document.getElementById('resBadge');
+                badge.textContent = data.verdict.toUpperCase();
+                const vColor = getColorForVerdict(data.verdict);
+                badge.style.borderColor = vColor;
+                badge.style.color = vColor;
+
+                const detailsUl = document.getElementById('resDetails');
+                detailsUl.innerHTML = '';
+                if(data.keyDetails) {
+                    data.keyDetails.forEach(d => {
+                        const li = document.createElement('li');
+                        li.textContent = d;
+                        detailsUl.appendChild(li);
+                    });
+                }
+
+                document.getElementById('resDevelopments').textContent = data.developments || "";
+
+                const sourcesDiv = document.getElementById('resSources');
+                sourcesDiv.innerHTML = '';
+                if(data.sources) {
+                    data.sources.forEach(s => {
+                        const a = document.createElement('a');
+                        a.href = s.url;
+                        a.className = 'source-pill';
+                        a.target = '_blank';
+                        a.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg> ${s.name}`;
+                        sourcesDiv.appendChild(a);
+                    });
+                }
+
+                // Generate SEO Schema for the new claim
+                generateSchema(query, data);
+
+                // Refresh the global trending list from the server to include the newly logged query
+                await fetchPastQueries();
+
+                // Show UI
+                loading.style.display = 'none';
+                results.style.display = 'block';
+
+            } catch (err) {
+                console.error(err);
+                alert("Network error: Could not reach the indexing engine. Please check your internet connection or site URL.");
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

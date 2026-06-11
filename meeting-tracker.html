@@ -476,6 +476,7 @@
             <div class="fluent-form-container">
                 [fluentform id="2"]
             </div>
+            <a href="/alert-dashboard.html" style="display:inline-block; margin-top: 12px; color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 600;">View Full Civic Alert Dashboard →</a>
         </div>
     </div>
 
@@ -510,23 +511,72 @@
     var meetingData = [];
 
     // Inject Dataset Schema
-    function injectSchema() {
-        var script = document.createElement('script');
-        script.type = 'application/ld+json';
-        script.text = JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Dataset",
-            "name": "Laguna Beach Civic Meeting Database",
-            "description": "Comprehensive database of Laguna Beach City Council, Design Review Board, and Planning Commission meetings. Includes extracted agendas, summaries, and meeting videos.",
-            "url": window.location.href,
-            "creator": {
-                "@type": "Organization",
-                "name": "SoLaguna",
-                "url": "https://solaguna.com"
-            },
-            "isBasedOn": "https://lagunabeachcity.granicus.com/ViewPublisher.php?view_id=3",
-            "license": "https://creativecommons.org/publicdomain/zero/1.0/"
+    function injectSchema(meetingsData) {
+        // Generate an array of Event schemas
+        const events = meetingsData.map(m => {
+            return {
+                "@type": "Event",
+                "name": m.name,
+                "startDate": new Date(m.date).toISOString() || new Date().toISOString(),
+                "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+                "eventStatus": m.name.includes("CANCELED") ? "https://schema.org/EventCancelled" : "https://schema.org/EventScheduled",
+                "location": {
+                    "@type": "CivicStructure",
+                    "name": "Laguna Beach City Hall",
+                    "address": {
+                        "@type": "PostalAddress",
+                        "streetAddress": "505 Forest Avenue",
+                        "addressLocality": "Laguna Beach",
+                        "addressRegion": "CA",
+                        "postalCode": "92651",
+                        "addressCountry": "US"
+                    }
+                },
+                "url": m.agenda_url || "https://lagunabeachcity.granicus.com/"
+            };
         });
+
+        const schema = {
+            "@context": "https://schema.org/",
+            "@graph": [
+                {
+                    "@type": "Organization",
+                    "@id": "https://solaguna.com/#organization",
+                    "name": "SoLaguna Neighborhood Association",
+                    "url": "https://solaguna.com",
+                    "email": "michael@solaguna.com",
+                    "logo": "https://solaguna.com/wp-content/uploads/2025/10/solaguna-logo.png"
+                },
+                {
+                    "@type": "Dataset",
+                    "@id": "https://solaguna.com/meeting-tracker/#dataset",
+                    "name": "Laguna Beach City Council Meetings Database",
+                    "description": "Comprehensive tracking and AI analysis of municipal meetings, agendas, and transcripts for the City of Laguna Beach, CA.",
+                    "creator": {
+                        "@type": "Organization",
+                        "name": "SoLaguna Civic Engine"
+                    },
+                    "publisher": { "@id": "https://solaguna.com/#organization" },
+                    "isBasedOn": "https://lagunabeachcity.granicus.com/",
+                    "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+                    "isAccessibleForFree": true,
+                    "hasPart": events
+                },
+                {
+                    "@type": "WebPage",
+                    "@id": "https://solaguna.com/meeting-tracker/#webpage",
+                    "url": "https://solaguna.com/meeting-tracker/",
+                    "name": "Meeting Tracker | SoLaguna Neighborhood Association",
+                    "description": "Track, search, and analyze City of Laguna Beach meeting agendas with AI executive summaries.",
+                    "publisher": { "@id": "https://solaguna.com/#organization" },
+                    "mainEntity": { "@id": "https://solaguna.com/meeting-tracker/#dataset" }
+                }
+            ]
+        };
+
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.text = JSON.stringify(schema);
         document.head.appendChild(script);
     }
 
