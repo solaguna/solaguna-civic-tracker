@@ -79,7 +79,8 @@ def evaluate_alerts_and_summarize(text, meeting_name, subscribers, api_key):
     prompt = f"""Please read the following agenda and write a concise, highly digestible executive summary. **You must format your response strictly as an HTML bulleted list (using <ul> and <li> tags).** Highlight the 3-5 most important items. Do not use Markdown formatting, only HTML tags.
 
 CRITICAL INSTRUCTION FOR EEAT:
-For EACH <li> item in your summary, if the text mentions a specific physical address in Laguna Beach OR an APN (Assessor's Parcel Number, e.g., 496-035-01), you MUST append an HTML div block containing Action Pills at the end of the <li> content.
+For EACH and EVERY <li> item in your summary, if the text mentions a specific physical address in Laguna Beach OR an APN (Assessor's Parcel Number), you ABSOLUTELY MUST append the HTML div block containing Action Pills at the end of that specific <li> content. 
+DO NOT SKIP ANY ADDRESSES. If there are 4 different addresses in 4 different bullets, you must generate 4 separate Action Pill blocks.
 
 If an ADDRESS is mentioned, include:
 <div class="action-pills">
@@ -91,7 +92,7 @@ If an APN is ALSO mentioned, add these two buttons inside that same <div class="
   <a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CBuilding%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22[APN]%22%7D" target="_blank" class="pill-btn">🏗️ Building Files</a>
 </div>
 
-Ensure [URL_ENCODED_ADDRESS] and [APN] are replaced with the actual data from the text.
+Ensure [URL_ENCODED_ADDRESS] and [APN] are replaced with the actual data from the text for EACH specific bullet.
 
 Agenda Text:
 {text[:8000]}
