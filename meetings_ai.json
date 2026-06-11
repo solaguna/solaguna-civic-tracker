@@ -5,7 +5,7 @@
     "date": "June 11, 2026 - 02:00 PM",
     "agenda_url": "https://lagunabeachcity.granicus.com/AgendaViewer.php?view_id=3&event_id=3707",
     "video_url": null,
-    "summary": "The Laguna Beach City Council is holding a special closed-session meeting focused on labor negotiations, real estate negotiations involving several specific properties, and legal consultation on a potential First Amendment-related litigation issue. No regular business will be heard, and the meeting is limited to the single closed-session agenda before adjourning.",
+    "summary": "The Laguna Beach City Council is holding a special closed-session meeting focused entirely on confidential matters, including labor negotiations with two employee groups, real estate negotiations for several properties, and a potential litigation issue related to a city code regulating the Forest Avenue Promenade. No public action items are scheduled beyond these closed-session discussions, and the council will adjourn after the meeting.",
     "seo_text": "Meeting Subscribe Enter your email address below to receive updates related to this item Invalid E-mail Cancel Subscribe Success You will now receive updates related to this item Close Hide Video Show Video Special Closed Session - 6/11/2026 9:00:00 PM Scan this QR Code for an electronic copy of the City Council Agenda CITY OF LAGUNA BEACH CITY COUNCIL AGENDA JUNE 11, 2026 COUNCIL CHAMBERS \u2013 505 FOREST AVENUE, LAGUNA BEACH, CA 92651 SPECIAL MEETING \u2013 2:00 PM TO THE MEMBERS OF THE CITY COUNCIL: P"
   },
   {
@@ -14,7 +14,7 @@
     "date": "June 11, 2026 - 05:00 PM",
     "agenda_url": "https://lagunabeachcity.granicus.com/AgendaViewer.php?view_id=3&event_id=3676",
     "video_url": null,
-    "summary": "Agenda not available.",
+    "summary": "Network Error: HTTPSConnectionPool(host='granicus_production_attachments.s3.amazonaws.com', port=443): Max retries exceeded with url: /lagunabeachcity/b3a2588adfd1b3a31edecac7175c2f5e0.pdf (Caused by SSLError(SSLCertVerificationError(1, \"[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'granicus_production_attachments.s3.amazonaws.com'. (_ssl.c:1017)\")))",
     "seo_text": ""
   },
   {
