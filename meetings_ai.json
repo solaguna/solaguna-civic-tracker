@@ -5,7 +5,7 @@
     "date": "June 11, 2026 - 02:00 PM",
     "agenda_url": "https://lagunabeachcity.granicus.com/AgendaViewer.php?view_id=3&event_id=3707",
     "video_url": null,
-    "summary": "The Laguna Beach City Council is holding a special closed-session meeting focused entirely on confidential matters, including labor negotiations with two employee groups, real estate negotiations for several properties, and a potential litigation issue related to a city code regulating the Forest Avenue Promenade. No public action items are scheduled beyond these closed-session discussions, and the council will adjourn after the meeting.",
+    "summary": "This is a special closed-session Laguna Beach City Council meeting focused on labor negotiations, real property negotiations for several specific parcels, and potential litigation involving a First Amendment challenge to a city ordinance. The agenda includes public comment on closed-session items, Levine Act disclosure requirements, and notice of the next regular council meeting.",
     "seo_text": "Meeting Subscribe Enter your email address below to receive updates related to this item Invalid E-mail Cancel Subscribe Success You will now receive updates related to this item Close Hide Video Show Video Special Closed Session - 6/11/2026 9:00:00 PM Scan this QR Code for an electronic copy of the City Council Agenda CITY OF LAGUNA BEACH CITY COUNCIL AGENDA JUNE 11, 2026 COUNCIL CHAMBERS \u2013 505 FOREST AVENUE, LAGUNA BEACH, CA 92651 SPECIAL MEETING \u2013 2:00 PM TO THE MEMBERS OF THE CITY COUNCIL: P"
   },
   {
@@ -14,8 +14,8 @@
     "date": "June 11, 2026 - 05:00 PM",
     "agenda_url": "https://lagunabeachcity.granicus.com/AgendaViewer.php?view_id=3&event_id=3676",
     "video_url": null,
-    "summary": "Network Error: HTTPSConnectionPool(host='granicus_production_attachments.s3.amazonaws.com', port=443): Max retries exceeded with url: /lagunabeachcity/b3a2588adfd1b3a31edecac7175c2f5e0.pdf (Caused by SSLError(SSLCertVerificationError(1, \"[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'granicus_production_attachments.s3.amazonaws.com'. (_ssl.c:1017)\")))",
-    "seo_text": ""
+    "summary": "The Design Review Board meeting agenda for June 11, 2026 includes public communications, procedural items, and several development applications for review. Major items include an ADU setback variance continuation at 2885 Rounsevel Terrace, an attached ADU and variance at 341 Holly Street, modifications to a single-family home under construction at 954 Rembrandt Drive, a large residential addition at 1375 Circle Way, and deck expansions at 31461 Coast Hwy, each with related Coastal Development Permit and CEQA considerations.",
+    "seo_text": "1. CALL TO ORDER 2. PUBLIC COMMUNICATIONS - At this time, members of the public may address the Design Review Board regarding any items not on the agenda but within the subject matter jurisdiction of the Design Review Board. No action may be taken on off-agenda items unless authorized by law. Comments shall be limited to three (3) minutes each and fifteen (15) minutes for all comments, unless extended for good cause by the Design Review Board. 3. MODIFICATION OF AGENDA ORDER 4. CONSENT CALENDAR "
   },
   {
     "category": "Upcoming Events",
@@ -30,10 +30,10 @@
     "category": "Upcoming Events",
     "name": "Heritage Committee - CANCELED",
     "date": "June 15, 2026 - 06:00 PM",
-    "agenda_url": null,
+    "agenda_url": "https://lagunabeachcity.granicus.com/AgendaViewer.php?view_id=3&event_id=3708",
     "video_url": null,
-    "summary": "Agenda not available.",
-    "seo_text": ""
+    "summary": "This agenda notice states that the Heritage Committee meeting scheduled for June 15, 2025, was canceled. It also notes that the next regular Heritage Committee meeting is scheduled for July 20, 2025, at 6:00 PM, and includes standard ADA accommodation information.",
+    "seo_text": "THIS JUNE 15, 2025, MEETING HAS BEEN CANCELED. THE NEXT REGULAR HERITAGE COMMITTEE MEETING IS SCHEDULED FOR JULY 20, 2025, AT 6:00 PM. City of Laguna Beach HERITAGE COMMITTEE - CANCELED June 15, 2026 6:00 pm Meeting Agenda Meeting Cancelation Notice: ADA ACCOMMODATIONS Pursuant to the Americans with Disabilities Act, persons with a disability who require a disability- related modification or accommodation in order to participate in a meeting, including auxiliary aids or services, may request suc"
   },
   {
     "category": "Upcoming Events",
