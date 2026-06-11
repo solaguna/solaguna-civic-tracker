@@ -30,6 +30,8 @@ jobs:
       - name: Run Scraper
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          ALERTS_CSV_URL: ${{ secrets.ALERTS_CSV_URL }}
         run: |
           python scrape_meetings.py
 
