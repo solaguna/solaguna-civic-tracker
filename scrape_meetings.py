@@ -4,13 +4,13 @@ import json
 import os
 import re
 import io
+import csv
 try:
     import pypdf
 except ImportError:
     pypdf = None
 
 def clean_text(html_content):
-    """Extract clean text from HTML"""
     soup = BeautifulSoup(html_content, 'html.parser')
     for script in soup(["script", "style"]):
         script.extract()
@@ -19,40 +19,66 @@ def clean_text(html_content):
     return text
 
 def extract_pdf_text(pdf_bytes):
-    """Extract text from a PDF byte stream"""
     if not pypdf:
         return "ERROR_PYPDF_MISSING"
     try:
         pdf_file = io.BytesIO(pdf_bytes)
         reader = pypdf.PdfReader(pdf_file)
         text = ""
-        # Read up to first 10 pages to save time/tokens
         for page in reader.pages[:10]:
             extracted = page.extract_text()
             if extracted:
                 text += extracted + "\n"
-        # Collapse multiple spaces/newlines
         text = re.sub(r'\s+', ' ', text)
         return text.strip()
     except Exception as e:
         return f"ERROR_PDF_PARSE: {str(e)}"
 
-def generate_ai_summary(text):
-    """
-    Generate an AI summary using the OpenAI API.
-    """
-    api_key = os.environ.get('OPENAI_API_KEY')
-    if not api_key:
-        return "AI Summary: This meeting covered standard civic agenda items. (Configure API key for full AI digest.)"
+def get_subscribers():
+    csv_url = os.environ.get('ALERTS_CSV_URL')
+    if not csv_url:
+        print("No ALERTS_CSV_URL found. Skipping alerts.")
+        return []
+    try:
+        res = requests.get(csv_url, timeout=10)
+        if res.status_code != 200:
+            return []
         
+        subs = []
+        reader = csv.reader(res.text.splitlines())
+        headers = next(reader, None) # skip header
+        for row in reader:
+            email = None
+            topics = ""
+            for cell in row:
+                if "@" in cell and "." in cell:
+                    email = cell.strip()
+                elif len(cell) > len(topics) and cell != email:
+                    topics = cell.strip()
+            if email and topics:
+                subs.append({"email": email, "topics": topics})
+        return subs
+    except Exception as e:
+        print(f"Error fetching CSV: {e}")
+        return []
+
+def evaluate_alerts_and_summarize(text, meeting_name, subscribers, api_key):
+    # This single LLM call generates the summary AND evaluates alerts to save tokens
     url = "https://api.openai.com/v1/responses"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}"
     }
     
-    prompt = f"Provide a simple, digestible 2-3 sentence executive summary of the following city meeting agenda:\n\n{text[:8000]}"
+    prompt = f"Analyze the following civic agenda for '{meeting_name}'.\n\nAGENDA TEXT:\n{text[:8000]}\n\n"
+    prompt += "TASK 1: Provide a simple, digestible 2-3 sentence executive summary of the agenda.\n"
+    prompt += "TASK 2: Evaluate the agenda against the following user alert topics. Return the index numbers of users whose topics are highly relevant to this agenda.\n\nUSERS:\n"
     
+    for i, sub in enumerate(subscribers):
+        prompt += f"[{i}] {sub['topics']}\n"
+        
+    prompt += "\nOutput JSON exactly in this format:\n{\n  \"summary\": \"The summary text here...\",\n  \"alert_matches\": [0, 2]\n}"
+
     data = {
         "model": "gpt-5.4-mini",
         "input": prompt,
@@ -63,17 +89,81 @@ def generate_ai_summary(text):
         res = requests.post(url, headers=headers, json=data, timeout=30)
         if res.status_code == 200:
             res_json = res.json()
-            return res_json["output"][0]["content"][0]["text"]
+            output_text = res_json["output"][0]["content"][0]["text"]
+            # Extract JSON from the output block
+            match = re.search(r'\{.*\}', output_text, re.DOTALL)
+            if match:
+                parsed = json.loads(match.group(0))
+                return parsed.get("summary", "Summary unavailable."), parsed.get("alert_matches", [])
+            else:
+                return output_text, []
         else:
-            return f"AI Summary generation failed (Status {res.status_code})."
+            return f"AI Summary failed (Status {res.status_code}).", []
     except Exception as e:
-        return f"AI Summary failed: {str(e)}"
+        return f"AI generation failed: {str(e)}", []
+
+def send_brevo_email(email, meeting_name, meeting_date, agenda_url, topics, summary):
+    brevo_key = os.environ.get('BREVO_API_KEY')
+    if not brevo_key:
+        print("No BREVO_API_KEY. Skipping email.")
+        return
+        
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "accept": "application/json",
+        "api-key": brevo_key,
+        "content-type": "application/json"
+    }
+    
+    html_content = f"""
+    <div style="font-family: 'Inter', Helvetica, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e1e8ed; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+        <div style="background: #091c2b; padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">SoLaguna Civic Alerts</h1>
+        </div>
+        <div style="padding: 40px 30px;">
+            <p style="color: #4a5568; font-size: 16px; line-height: 1.6;">Hi there,</p>
+            <p style="color: #4a5568; font-size: 16px; line-height: 1.6;">Our AI watchdog just detected a match for your tracked topics <strong>({topics})</strong> in an upcoming city meeting!</p>
+            
+            <div style="background: #f7fafc; border-left: 4px solid #4ab58e; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+                <h3 style="color: #091c2b; margin: 0 0 5px 0;">{meeting_name}</h3>
+                <p style="color: #4a5568; margin: 0 0 15px 0; font-size: 14px;">{meeting_date}</p>
+                <p style="color: #091c2b; margin: 0; font-size: 15px; line-height: 1.6;">{summary}</p>
+            </div>
+            
+            <a href="{agenda_url}" style="display: inline-block; background: #4ab58e; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 50px; font-weight: 600; font-size: 15px; margin-top: 10px;">View Official Agenda PDF</a>
+        </div>
+        <div style="background: #f1f5f9; padding: 20px; text-align: center; color: #718096; font-size: 13px;">
+            <p style="margin: 0;">You are receiving this because you subscribed to Civic Alerts on SoLaguna.com.</p>
+        </div>
+    </div>
+    """
+
+    payload = {
+        "sender": {"name": "SoLaguna AI Watchdog", "email": "alerts@solaguna.com"},
+        "to": [{"email": email}],
+        "subject": f"Civic Alert: Match found in upcoming {meeting_name}",
+        "htmlContent": html_content
+    }
+    
+    try:
+        requests.post(url, headers=headers, json=payload, timeout=10)
+        print(f"Sent alert to {email} for {meeting_name}")
+    except Exception as e:
+        print(f"Failed to send email to {email}: {e}")
 
 def scrape_meetings():
+    api_key = os.environ.get('OPENAI_API_KEY')
+    subscribers = get_subscribers()
+    
+    # Load previously sent alerts to avoid spamming
+    try:
+        with open('sent_alerts.json', 'r') as f:
+            sent_alerts = json.load(f)
+    except:
+        sent_alerts = []
+
     url = "https://lagunabeachcity.granicus.com/ViewPublisher.php?view_id=3"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-    }
+    headers = {"User-Agent": "Mozilla/5.0"}
     
     print("Fetching Granicus portal...")
     response = requests.get(url, headers=headers)
@@ -104,7 +194,6 @@ def scrape_meetings():
                 date = cols[1].text.strip()
                 
                 date = date.replace('\u00a0', ' ')
-                # Remove leading timestamp if present (e.g. 1781222400June 11)
                 date = re.sub(r'^\d{10}', '', date).strip()
                 
                 if not name or "Name" in name:
@@ -147,7 +236,6 @@ def scrape_meetings():
                     try:
                         agenda_res = requests.get(agenda_url, headers=headers, timeout=30)
                         if agenda_res.status_code == 200:
-                            # Check if the response is a PDF
                             if agenda_res.content.lstrip().startswith(b'%PDF'):
                                 extracted_text = extract_pdf_text(agenda_res.content)
                             else:
@@ -156,7 +244,25 @@ def scrape_meetings():
                             if extracted_text.startswith("ERROR_"):
                                 summary = f"System Error: {extracted_text}"
                             elif len(extracted_text.strip()) > 50:
-                                summary = generate_ai_summary(extracted_text)
+                                # ONLY evaluate if we have API key
+                                if api_key:
+                                    # ONLY run alert evaluation if we haven't processed this agenda yet
+                                    is_new_agenda = agenda_url not in sent_alerts
+                                    
+                                    # If new, evaluate against ALL subscribers. If old, just get a simple summary (or pass empty subs list to save tokens)
+                                    subs_to_check = subscribers if is_new_agenda else []
+                                    
+                                    summary, matches = evaluate_alerts_and_summarize(extracted_text, name, subs_to_check, api_key)
+                                    
+                                    if is_new_agenda and matches:
+                                        for match_idx in matches:
+                                            if match_idx < len(subscribers):
+                                                sub = subscribers[match_idx]
+                                                send_brevo_email(sub['email'], name, date, agenda_url, sub['topics'], summary)
+                                        # Mark as processed
+                                        sent_alerts.append(agenda_url)
+                                else:
+                                    summary = "AI Summary: Configure API key for full AI digest."
                             else:
                                 summary = f"Agenda text too short or unreadable. Length: {len(extracted_text)}"
                     except Exception as e:
@@ -181,6 +287,9 @@ def scrape_meetings():
             
     with open('meetings_ai.json', 'w', encoding='utf-8') as f:
         json.dump(database, f, indent=2)
+        
+    with open('sent_alerts.json', 'w', encoding='utf-8') as f:
+        json.dump(sent_alerts, f, indent=2)
         
     print(f"Successfully scraped and processed {len(database)} meetings.")
 
