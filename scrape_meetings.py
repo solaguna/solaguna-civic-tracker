@@ -67,6 +67,8 @@ def get_subscribers():
         print(f"Error fetching CSV: {e}")
         return []
 
+import urllib.parse
+
 def evaluate_alerts_and_summarize(text, meeting_name, subscribers, api_key):
     # This single LLM call generates the summary AND evaluates alerts to save tokens
     url = "https://api.openai.com/v1/responses"
@@ -75,24 +77,8 @@ def evaluate_alerts_and_summarize(text, meeting_name, subscribers, api_key):
         "Authorization": f"Bearer {api_key}"
     }
     
-    system_prompt = "You are a non-partisan civic watchdog. Read the agenda and provide an executive summary highlighting the most impactful items for local residents."
-    prompt = f"""Please read the following agenda and write a concise, highly digestible executive summary. **You must format your response strictly as an HTML bulleted list (using <ul> and <li> tags).** Highlight the 3-5 most important items. Do not use Markdown formatting, only HTML tags.
-
-CRITICAL INSTRUCTION FOR EEAT:
-For EACH and EVERY <li> item in your summary, if the text mentions a specific physical address in Laguna Beach OR an APN (Assessor's Parcel Number), you ABSOLUTELY MUST append the HTML div block containing Action Pills at the end of that specific <li> content. 
-DO NOT SKIP ANY ADDRESSES. If there are 4 different addresses in 4 different bullets, you must generate 4 separate Action Pill blocks.
-
-If an ADDRESS is mentioned, include:
-<div class="action-pills">
-  <a href="https://www.google.com/maps/search/?api=1&query=[URL_ENCODED_ADDRESS]+Laguna+Beach+CA" target="_blank" class="pill-btn">📍 Google Maps</a>
-  <a href="https://gis.lagunabeachcity.net/Html5Viewer/index.html?viewer=LagunaBeachPublicGIS" target="_blank" class="pill-btn">🗺️ City GIS</a>
-
-If an APN is ALSO mentioned, add these two buttons inside that same <div class="action-pills">:
-  <a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CPlanning%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22[APN]%22%7D" target="_blank" class="pill-btn">📄 Planning Files</a>
-  <a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CBuilding%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22[APN]%22%7D" target="_blank" class="pill-btn">🏗️ Building Files</a>
-</div>
-
-Ensure [URL_ENCODED_ADDRESS] and [APN] are replaced with the actual data from the text for EACH specific bullet.
+    system_prompt = "You are a non-partisan civic watchdog. Read the agenda and extract the 3-5 most impactful items for local residents."
+    prompt = f"""Please read the following agenda and extract the 3-5 most important items. For each item, extract the physical address and the APN (Assessor's Parcel Number) if they are mentioned.
 
 Agenda Text:
 {text[:8000]}
@@ -105,10 +91,23 @@ USERS:
     for i, sub in enumerate(subscribers):
         prompt += f"[{i}] {sub['topics']}\n"
         
-    prompt += "\nOutput JSON exactly in this format:\n{\n  \"summary\": \"The summary text here...\",\n  \"alert_matches\": [0, 2]\n}"
+    prompt += """
+Output JSON exactly in this format:
+{
+  "summary_items": [
+    {
+      "text": "The plain text description of the agenda item...",
+      "address": "341 Holly Street", 
+      "apn": "496-035-01"
+    }
+  ],
+  "alert_matches": [0, 2]
+}
+Note: If an address or APN is not mentioned, set the field to null.
+"""
 
     data = {
-        "model": "gpt-5.4-mini",
+        "model": "gpt-4o-mini",
         "input": prompt,
         "store": True
     }
@@ -122,9 +121,34 @@ USERS:
             match = re.search(r'\{.*\}', output_text, re.DOTALL)
             if match:
                 parsed = json.loads(match.group(0))
-                return parsed.get("summary", "Summary unavailable."), parsed.get("alert_matches", [])
+                
+                # Build the HTML programmatically
+                summary_html = "<ul>"
+                items = parsed.get("summary_items", [])
+                if not items:
+                    summary_html += "<li>No major items found.</li>"
+                    
+                for item in items:
+                    summary_html += f"<li>{item.get('text', '')}"
+                    addr = item.get("address")
+                    apn = item.get("apn")
+                    
+                    if addr or apn:
+                        summary_html += ' <div class="action-pills">'
+                        if addr:
+                            addr_encoded = urllib.parse.quote(addr)
+                            summary_html += f'<a href="https://www.google.com/maps/search/?api=1&query={addr_encoded}+Laguna+Beach+CA" target="_blank" class="pill-btn">📍 Google Maps</a>'
+                            summary_html += '<a href="https://gis.lagunabeachcity.net/Html5Viewer/index.html?viewer=LagunaBeachPublicGIS" target="_blank" class="pill-btn">🗺️ City GIS</a>'
+                        if apn:
+                            summary_html += f'<a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CPlanning%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22{apn}%22%7D" target="_blank" class="pill-btn">📄 Planning Files</a>'
+                            summary_html += f'<a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CBuilding%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22{apn}%22%7D" target="_blank" class="pill-btn">🏗️ Building Files</a>'
+                        summary_html += '</div>'
+                    summary_html += "</li>"
+                summary_html += "</ul>"
+                
+                return summary_html, parsed.get("alert_matches", [])
             else:
-                return output_text, []
+                return "Failed to parse JSON output.", []
         else:
             return f"AI Summary failed (Status {res.status_code}).", []
     except Exception as e:
