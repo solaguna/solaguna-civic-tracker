@@ -3,17 +3,39 @@ from bs4 import BeautifulSoup
 import json
 import os
 import re
+import io
+try:
+    import pypdf
+except ImportError:
+    pypdf = None
 
 def clean_text(html_content):
     """Extract clean text from HTML"""
     soup = BeautifulSoup(html_content, 'html.parser')
-    # Remove script and style elements
     for script in soup(["script", "style"]):
         script.extract()
     text = soup.get_text(separator=' ', strip=True)
-    # Collapse whitespace
     text = re.sub(r'\s+', ' ', text)
     return text
+
+def extract_pdf_text(pdf_bytes):
+    """Extract text from a PDF byte stream"""
+    if not pypdf:
+        return "PDF Parsing not available."
+    try:
+        pdf_file = io.BytesIO(pdf_bytes)
+        reader = pypdf.PdfReader(pdf_file)
+        text = ""
+        # Read up to first 10 pages to save time/tokens
+        for page in reader.pages[:10]:
+            extracted = page.extract_text()
+            if extracted:
+                text += extracted + "\n"
+        # Collapse multiple spaces/newlines
+        text = re.sub(r'\s+', ' ', text)
+        return text.strip()
+    except Exception as e:
+        return f"Failed to parse PDF: {str(e)}"
 
 def generate_ai_summary(text):
     """
@@ -29,7 +51,7 @@ def generate_ai_summary(text):
         "Authorization": f"Bearer {api_key}"
     }
     
-    prompt = f"Provide a simple, digestible 2-3 sentence executive summary of the following city meeting agenda:\n\n{text[:10000]}"
+    prompt = f"Provide a simple, digestible 2-3 sentence executive summary of the following city meeting agenda:\n\n{text[:8000]}"
     
     data = {
         "model": "gpt-5.4-mini",
@@ -41,7 +63,6 @@ def generate_ai_summary(text):
         res = requests.post(url, headers=headers, json=data, timeout=30)
         if res.status_code == 200:
             res_json = res.json()
-            # Extract text from the v1/responses output schema
             return res_json["output"][0]["content"][0]["text"]
         else:
             return f"AI Summary generation failed (Status {res.status_code})."
@@ -70,7 +91,11 @@ def scrape_meetings():
         header_th = table.find('th', class_='listingTableHeader')
         if header_th:
             category = header_th.text.strip()
-            
+        else:
+            prev_header = table.find_previous(['h2', 'caption', 'h3'])
+            if prev_header:
+                category = prev_header.text.strip()
+                
         rows = table.find_all('tr')
         for row in rows:
             cols = row.find_all('td')
@@ -78,8 +103,9 @@ def scrape_meetings():
                 name = cols[0].text.strip()
                 date = cols[1].text.strip()
                 
-                # Cleanup zero-width spaces or weird characters
                 date = date.replace('\u00a0', ' ')
+                # Remove leading timestamp if present (e.g. 1781222400June 11)
+                date = re.sub(r'^\d{10}', '', date).strip()
                 
                 if not name or "Name" in name:
                     continue
@@ -89,19 +115,18 @@ def scrape_meetings():
                 video_url = None
                 
                 for a in links:
-                    text = a.text.strip().lower()
+                    text_link = a.text.strip().lower()
                     href = a.get('href', '')
                     if href.startswith('//'):
                         href = 'https:' + href
                     elif href.startswith('/'):
                         href = 'https://lagunabeachcity.granicus.com' + href
                         
-                    if 'agenda' in text or 'documents' in text or 'agenda' in href.lower():
+                    if 'agenda' in text_link or 'documents' in text_link or 'agenda' in href.lower():
                         agenda_url = href
-                    elif 'video' in text or 'video' in href.lower():
+                    elif 'video' in text_link or 'video' in href.lower():
                         video_url = href
                         
-                # Some videos are in onclick
                 if not video_url:
                     for a in links:
                         onclick = a.get('onclick', '')
@@ -112,22 +137,24 @@ def scrape_meetings():
                             except:
                                 pass
                 
-                # Keep top 15 total for speed, or filter
                 if len(database) >= 15:
                     continue
                     
                 summary = "Agenda not available."
                 extracted_text = ""
                 
-                # If we have an agenda URL, fetch it and extract text!
-                if agenda_url and ('AgendaViewer' in agenda_url or 'pdf' in agenda_url.lower()):
+                if agenda_url:
                     try:
-                        agenda_res = requests.get(agenda_url, headers=headers, timeout=5)
+                        agenda_res = requests.get(agenda_url, headers=headers, timeout=10)
                         if agenda_res.status_code == 200:
-                            extracted_text = clean_text(agenda_res.text)
-                            # Truncate text for AI token limits
-                            extracted_text = extracted_text[:8000]
-                            summary = generate_ai_summary(extracted_text)
+                            # Check if the response is a PDF
+                            if agenda_res.content.startswith(b'%PDF'):
+                                extracted_text = extract_pdf_text(agenda_res.content)
+                            else:
+                                extracted_text = clean_text(agenda_res.text)
+                                
+                            if len(extracted_text.strip()) > 50:
+                                summary = generate_ai_summary(extracted_text)
                     except Exception as e:
                         print(f"Error fetching agenda {agenda_url}: {e}")
                 
@@ -138,7 +165,7 @@ def scrape_meetings():
                     "agenda_url": agenda_url,
                     "video_url": video_url,
                     "summary": summary,
-                    "seo_text": extracted_text[:500] # Save a snippet for SEO indexing
+                    "seo_text": extracted_text[:500]
                 })
                 
                 if len(database) >= 15:
