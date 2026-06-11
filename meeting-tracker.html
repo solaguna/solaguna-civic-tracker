@@ -28,18 +28,50 @@
         body {
             background: transparent;
             color: var(--text-main);
-            padding: 40px 20px;
             line-height: 1.6;
+        }
+
+        /* Force remove WordPress default top gaps to fix the white border */
+        .site-main, #main, .entry-content, .ct-container { 
+            padding-top: 0 !important; 
+            margin-top: 0 !important; 
         }
 
         .tracker-container {
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 40px auto;
+            padding: 0 20px;
             animation: fadeIn 0.5s ease-out;
         }
 
-        .header {
+        .header-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
             margin-bottom: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .header-grid {
+                grid-template-columns: 1fr;
+            }
+            .meeting-detail {
+                padding: 25px !important;
+            }
+            .detail-header h2 {
+                font-size: 1.5rem !important;
+            }
+            .meeting-list {
+                max-height: 400px !important;
+            }
+            .tracker-container {
+                padding: 0 10px;
+            }
+        }
+
+        .header {
+            margin-bottom: 0;
         }
 
         .header h1 {
@@ -109,7 +141,92 @@
             }
         }
 
-        /* Sidebar: Meeting List */
+        /* Sidebar Layout */
+        .sidebar-left {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Smart Alerts Widget */
+        .alert-signup {
+            background: linear-gradient(135deg, rgba(74, 181, 142, 0.1) 0%, rgba(74, 181, 142, 0.02) 100%);
+            border: 1px solid rgba(74, 181, 142, 0.2);
+            border-radius: 12px;
+            padding: 15px 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(74, 181, 142, 0.05);
+        }
+
+        .alert-signup h3 {
+            display: flex;
+            align-items: center;
+            color: var(--accent);
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .alert-signup p {
+            font-size: 0.75rem;
+            color: var(--text-main);
+            opacity: 0.8;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        /* Fluent Form Compact Overrides */
+        .fluent-form-container .ff-el-group {
+            margin-bottom: 10px !important;
+        }
+        .fluent-form-container textarea {
+            height: 50px !important;
+            min-height: 50px !important;
+        }
+        .fluent-form-container input, .fluent-form-container textarea {
+            padding: 8px 12px !important;
+            font-size: 0.8rem !important;
+            border-radius: 6px !important;
+        }
+        .fluent-form-container button {
+            padding: 8px 16px !important;
+            font-size: 0.85rem !important;
+            border-radius: 50px !important;
+            background: var(--accent) !important;
+        }
+
+        .raw-text-preview {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .raw-text-preview h4 {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .raw-text-preview p {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .read-more-btn {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .read-more-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* Meeting List */
         .meeting-list {
             background: var(--bg-card);
             backdrop-filter: blur(16px);
@@ -191,6 +308,7 @@
         .detail-header h2 {
             font-size: 1.8rem;
             margin-bottom: 10px;
+            color: #ffffff !important; /* Forces white even if WP tries to override */
         }
 
         .detail-header p {
@@ -238,7 +356,7 @@
             border-color: #ffffff;
         }
 
-        /* AI Summary Section */
+        /* Summary Section */
         .ai-summary {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
@@ -266,20 +384,48 @@
             line-height: 1.7;
             color: rgba(255, 255, 255, 0.9);
         }
-
-        /* Video Embed */
-        .video-container {
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-            aspect-ratio: 16 / 9;
+        
+        .ai-text ul {
+            padding-left: 20px;
+            margin-top: 10px;
+            margin-bottom: 0;
         }
         
-        .video-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        .ai-text li {
+            margin-bottom: 12px;
+        }
+        
+        .ai-text li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Action Pills for EEAT Links */
+        .action-pills {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .pill-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            border-radius: 50px;
+            background: rgba(74, 181, 142, 0.15);
+            color: var(--accent) !important;
+            text-decoration: none !important;
+            font-weight: 600;
+            border: 1px solid rgba(74, 181, 142, 0.3);
+            transition: all 0.2s ease-out;
+        }
+        
+        .pill-btn:hover {
+            background: var(--accent);
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(74, 181, 142, 0.2);
+            transform: translateY(-1px);
         }
 
         .highlight {
@@ -313,14 +459,23 @@
 <body>
 
 <div class="tracker-container">
-    <div class="header">
-        <h1>Civic Meeting Tracker</h1>
-        <p>Explore Agendas, Minutes, and AI-generated summaries of all Laguna Beach public meetings.</p>
-        <div class="eeat-badge">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-            Source: Directly synced with the City of Laguna Beach Granicus Portal.
+    <div class="header-grid">
+        <div class="header">
+            <h1>Civic Meeting Tracker</h1>
+            <p>Explore Agendas, Minutes, and summaries of all Laguna Beach public meetings.</p>
+        </div>
+        
+        <div class="alert-signup">
+            <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                    <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                Civic Alerts
+            </h3>
+            <p>Enter specific keywords or short phrases separated by commas (e.g., <strong>'Fire Station 4', 'SCWD', 'noise ordinance'</strong>). We will email you instantly if your topics appear in any upcoming agenda.</p>
+            <div class="fluent-form-container">
+                [fluentform id="2"]
+            </div>
         </div>
     </div>
 
@@ -329,35 +484,40 @@
     </div>
 
     <div class="dashboard-layout">
-        <div class="meeting-list" id="meetingList">
-            <!-- Populated by JS -->
-            <div style="padding: 30px; text-align: center; color: var(--text-muted);">
-                Loading meetings from City Portal...
+        <div class="sidebar-left">
+            <div class="meeting-list" id="meetingList">
+                <!-- Populated by JS -->
+                <div style="padding: 30px; text-align: center; color: var(--text-muted);">
+                    Loading meetings from City Portal...
+                </div>
             </div>
         </div>
 
         <div class="meeting-detail" id="meetingDetail">
             <!-- Populated by JS -->
-            <div class="detail-header">
-                <h2>Select a Meeting</h2>
-                <p>Click on a meeting from the sidebar to view its AI summary, official agenda, and video recording.</p>
+            <div id="meetingContent">
+                <div class="detail-header">
+                    <h2>Select a Meeting</h2>
+                    <p>Click on a meeting from the sidebar to view its summary, official agenda, and video recording.</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let meetingData = [];
+(function() {
+    var meetingData = [];
 
-    // Inject E-E-E-A-T Schema
+    // Inject Dataset Schema
     function injectSchema() {
-        const script = document.createElement('script');
+        var script = document.createElement('script');
         script.type = 'application/ld+json';
         script.text = JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Dataset",
             "name": "Laguna Beach Civic Meeting Database",
-            "description": "Comprehensive database of Laguna Beach City Council, Design Review Board, and Planning Commission meetings. Includes extracted agendas, AI summaries, and meeting videos.",
+            "description": "Comprehensive database of Laguna Beach City Council, Design Review Board, and Planning Commission meetings. Includes extracted agendas, summaries, and meeting videos.",
             "url": window.location.href,
             "creator": {
                 "@type": "Organization",
@@ -371,20 +531,25 @@
     }
 
     async function loadData() {
+        var listEl = document.getElementById('meetingList');
+        if (listEl) listEl.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted);">Initializing tracker...</div>';
+        
         try {
-            // Temporarily inlining the JSON data for testing on your live WordPress site
-            // In production with GitHub Actions, we'll point this to the raw JSON URL
-            meetingData = [{"category": "Unknown", "name": "Special City Council Closed Session", "date": "1781211600June 11, 2026 - 02:00 PM", "agenda_url": "https://lagunabeachcity.granicus.com/AgendaViewer.php?view_id=3&event_id=3707", "video_url": null, "summary": "Laguna Beach City Council is holding a special closed-session meeting on June 11, 2026, mainly to discuss labor negotiations with city employee associations, multiple real estate negotiations, and potential litigation related to a First Amendment challenge to a city ordinance. No general public business is scheduled beyond these closed-session items, and the meeting will adjourn to the next regular council meeting on June 23, 2026.", "seo_text": "Meeting Subscribe Enter your email address below to receive updates related to this item Invalid E-mail Cancel Subscribe Success You will now receive updates related to this item Close Hide Video Show Video Special Closed Session - 6/11/2026 9:00:00 PM Scan this QR Code for an electronic copy of the City Council Agenda CITY OF LAGUNA BEACH CITY COUNCIL AGENDA JUNE 11, 2026 COUNCIL CHAMBERS \u2013 505 FOREST AVENUE, LAGUNA BEACH, CA 92651 SPECIAL MEETING \u2013 2:00 PM TO THE MEMBERS OF THE CITY COUNCIL: P"}, {"category": "Unknown", "name": "Design Review Board", "date": "1781222400June 11, 2026 - 05:00 PM", "agenda_url": "https://lagunabeachcity.granicus.com/AgendaViewer.php?view_id=3&event_id=3676", "video_url": null, "summary": "The Planning Commission agenda appears to cover a routine set of land-use and development items, likely including project reviews, permits, and zoning-related decisions. It suggests the commission will evaluate proposals and determine whether they meet city planning standards before moving forward.", "seo_text": "%PDF-1.4 1 0 obj << /Title (\ufffd\ufffd\u0000P\u0000l\u0000a\u0000n\u0000n\u0000i\u0000n\u0000g\u0000 \u0000C\u0000o\u0000m\u0000m\u0000i\u0000s\u0000s\u0000i\u0000o\u0000n\u0000 \u0000A\u0000g\u0000e\u0000n\u0000d\u0000a) /Creator (\ufffd\ufffd\u0000w\u0000k\u0000h\u0000t\u0000m\u0000l\u0000t\u0000o\u0000p\u0000d\u0000f\u0000 \u00000\u0000.\u00001\u00002\u0000.\u00005) /Producer (\ufffd\ufffd\u0000Q\u0000t\u0000 \u00004\u0000.\u00008\u0000.\u00007) /CreationDate (D:20260610175619Z) >> endobj 3 0 obj << /Type /ExtGState /SA true /SM 0.02 /ca 1.0 /CA 1.0 /AIS false /SMask /None>> endobj 4 0 obj [/Pattern /DeviceRGB] endobj 9 0 obj << /Type /XObject /Subtype /Image /Width 500 /Height 500 /BitsPerComponent 8 /ColorSpace /DeviceRGB /Length 10 0 R /Filter /DCTDecode >> stream \ufffd\ufffd\ufffd\ufffd\u0000\u0010J"}, {"category": "Unknown", "name": "Environmental Sustainability Committee", "date": "1781571600June 15, 2026 - 06:00 PM", "agenda_url": null, "video_url": null, "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "Heritage Committee", "date": "1781571600June 15, 2026 - 06:00 PM", "agenda_url": null, "video_url": null, "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "Administrative Community Development Director Meeting", "date": "1781733600June 17, 2026 - 03:00 PM", "agenda_url": null, "video_url": null, "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "Planning Commission", "date": "1781744400June 17, 2026 - 06:00 PM", "agenda_url": null, "video_url": null, "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "Arts Commission Meeting", "date": "1782172800June 22, 2026 - 05:00 PM", "agenda_url": null, "video_url": null, "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "4:00 p.m. Closed Session; 5:00 p.m. Regular City Council Meeting", "date": "1782259200June 23, 2026 - 05:00 PM", "agenda_url": null, "video_url": null, "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "Housing and Human Services Committee", "date": "1782349200June 24, 2026 - 06:00 PM", "agenda_url": null, "video_url": null, "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "Design Review Board", "date": "1782432000June 25, 2026 - 05:00 PM", "agenda_url": null, "video_url": null, "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "5:00 p.m. Regular City Council Meeting", "date": "1780988400Jun  9, 2026", "agenda_url": null, "video_url": "https://lagunabeachcity.granicus.com/ASX.php?view_id=3&clip_id=3021&sn=lagunabeachcity.granicus.com", "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "3:00 p.m. Study Session", "date": "1780988400Jun  9, 2026", "agenda_url": null, "video_url": "https://lagunabeachcity.granicus.com/ASX.php?view_id=3&clip_id=3020&sn=lagunabeachcity.granicus.com", "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "Joint Study Session - City Council, Planning Commission, Design Review Board", "date": "1779778800May 26, 2026", "agenda_url": null, "video_url": "https://lagunabeachcity.granicus.com/ASX.php?view_id=3&clip_id=3009&sn=lagunabeachcity.granicus.com", "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "5:00 p.m. Regular City Council Meeting (no Closed Session)", "date": "1779778800May 26, 2026", "agenda_url": null, "video_url": "https://lagunabeachcity.granicus.com/ASX.php?view_id=3&clip_id=3010&sn=lagunabeachcity.granicus.com", "summary": "Agenda not available.", "seo_text": ""}, {"category": "Unknown", "name": "3:00 p.m. City Council Special Meeting for Appeals Hearings", "date": "1778655600May 13, 2026", "agenda_url": null, "video_url": "https://lagunabeachcity.granicus.com/ASX.php?view_id=3&clip_id=2997&sn=lagunabeachcity.granicus.com", "summary": "Agenda not available.", "seo_text": ""}];
+            var response = await fetch('https://raw.githubusercontent.com/solaguna/solaguna-civic-tracker/main/meetings_ai.json?t=' + new Date().getTime());
+            meetingData = await response.json();
             
-            // Clean up the dates for sorting/display
-            meetingData.forEach(m => {
-                if (m.date.startsWith('17')) {
-                    // Remove the weird timestamp prefix Granicus uses sometimes
-                    m.displayDate = m.date.replace(/^[0-9]10/, '');
+            for (var i = 0; i < meetingData.length; i++) {
+                var m = meetingData[i];
+                if (m.date) {
+                    if (m.date.startsWith('17')) {
+                        m.displayDate = m.date.replace(/^[0-9]{10}/, '');
+                    } else {
+                        m.displayDate = m.date || 'Date TBD';
+                    }
                 } else {
-                    m.displayDate = m.date;
+                    m.displayDate = 'Date TBD';
                 }
-            });
+            }
 
             renderList(meetingData);
             if (meetingData.length > 0) {
@@ -392,12 +557,15 @@
             }
             injectSchema();
         } catch (e) {
-            document.getElementById('meetingList').innerHTML = `<div style="padding: 20px; color: red;">Error loading meeting data: ${e.message}</div>`;
+            if (listEl) {
+                listEl.innerHTML = '<div style="padding: 20px; color: red;">Error loading meeting data: ' + e.message + '</div>';
+            }
         }
     }
 
-    function renderList(data, query = "") {
-        const list = document.getElementById('meetingList');
+    function renderList(data, query) {
+        query = query || "";
+        var list = document.getElementById('meetingList');
         list.innerHTML = '';
 
         if (data.length === 0) {
@@ -405,55 +573,89 @@
             return;
         }
 
-        data.forEach((meeting, index) => {
-            const div = document.createElement('div');
-            div.className = `meeting-item ${index === 0 && !query ? 'active' : ''}`;
-            div.dataset.index = index;
-            
-            const titleHTML = highlightText(meeting.name, query);
-            const categoryHTML = highlightText(meeting.category, query);
-            
-            div.innerHTML = `
-                <div class="meeting-category">${categoryHTML}</div>
-                <div class="meeting-title">${titleHTML}</div>
-                <div class="meeting-date">${meeting.displayDate}</div>
-            `;
-            
-            div.addEventListener('click', () => {
-                document.querySelectorAll('.meeting-item').forEach(el => el.classList.remove('active'));
-                div.classList.add('active');
-                renderDetail(meeting, index);
-            });
-            list.appendChild(div);
-        });
+        for (var i = 0; i < data.length; i++) {
+            (function(meeting, index) {
+                var div = document.createElement('div');
+                var isActive = '';
+                if (index === 0) {
+                    if (!query) {
+                        isActive = 'active';
+                    }
+                }
+                div.className = 'meeting-item ' + isActive;
+                div.dataset.index = index;
+                
+                var titleHTML = highlightText(meeting.name, query);
+                var categoryHTML = highlightText(meeting.category, query);
+                
+                div.innerHTML = '<div class="meeting-category">' + categoryHTML + '</div>' +
+                                '<div class="meeting-title">' + titleHTML + '</div>' +
+                                '<div class="meeting-date">' + meeting.displayDate + '</div>';
+                
+                div.addEventListener('click', function() {
+                    var items = document.querySelectorAll('.meeting-item');
+                    for (var j = 0; j < items.length; j++) {
+                        items[j].classList.remove('active');
+                    }
+                    div.classList.add('active');
+                    renderDetail(meeting, index);
+                    
+                    // Smooth scroll to details on mobile
+                    if (window.innerWidth < 901) {
+                        var detailEl = document.getElementById('meetingDetail');
+                        if (detailEl) {
+                            var offset = 80;
+                            var bodyRect = document.body.getBoundingClientRect().top;
+                            var elementRect = detailEl.getBoundingClientRect().top;
+                            var elementPosition = elementRect - bodyRect;
+                            var offsetPosition = elementPosition - offset;
+
+                            window.scrollTo({
+                                top: offsetPosition,
+                                behavior: "smooth"
+                            });
+                        }
+                    }
+                });
+                list.appendChild(div);
+            })(data[i], i);
+        }
     }
 
     function renderDetail(meeting, index) {
-        const detail = document.getElementById('meetingDetail');
-        
-        let actionHTML = '';
+        var seoTextFormatted = "";
+        if (meeting.seo_text) {
+            if (meeting.seo_text.trim() !== "") {
+                var truncatedText = meeting.seo_text;
+                if (truncatedText.length > 300) {
+                    truncatedText = truncatedText.substring(0, 300) + '...';
+                }
+                
+                seoTextFormatted = `
+                    <div class="raw-text-preview">
+                        <h4>AGENDA PREVIEW</h4>
+                        <p>${truncatedText} <br><br><a href="${meeting.agenda_url}" class="read-more-btn" target="_blank">Read More in Official PDF</a></p>
+                    </div>
+                `;
+            }
+        }
+
+        var actionHTML = '';
         if (meeting.agenda_url) {
             actionHTML += `<a href="${meeting.agenda_url}" target="_blank" class="btn btn-primary">View Official Agenda PDF</a>`;
         }
-        if (meeting.minutes_url) {
-            actionHTML += `<a href="${meeting.minutes_url}" target="_blank" class="btn btn-secondary">View Minutes</a>`;
-        }
-
-        let videoHTML = '';
         if (meeting.video_url) {
-            // If it's a direct Granicus video link, we could iframe it, but Granicus ASX links require their player.
-            // We'll provide a button.
             actionHTML += `<a href="${meeting.video_url}" target="_blank" class="btn btn-secondary">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg> Watch Video
             </a>`;
         }
 
-        detail.innerHTML = `
+        document.getElementById('meetingContent').innerHTML = `
             <div class="detail-header">
                 <p style="color: var(--accent); font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
-                    ${meeting.category} • ${meeting.displayDate}
+                    ${meeting.category.toUpperCase()} • ${meeting.displayDate.toUpperCase()}
                 </p>
                 <h2>${meeting.name}</h2>
                 <div class="action-row">
@@ -462,48 +664,45 @@
             </div>
 
             <div class="ai-summary">
-                <h3>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                    </svg>
-                    AI Executive Summary
+                <h3 style="margin-bottom: 15px; color: var(--accent); font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">
+                    EXECUTIVE SUMMARY
                 </h3>
                 <div class="ai-text">
                     ${meeting.summary}
                 </div>
             </div>
             
-            ${meeting.seo_text ? `
-            <div style="margin-top: 30px;">
-                <h4 style="font-size: 0.9rem; color: rgba(255,255,255,0.5); margin-bottom: 10px; text-transform: uppercase;">Raw Agenda Extraction (Preview)</h4>
-                <div style="font-family: Georgia, serif; font-size: 0.9rem; color: rgba(255,255,255,0.7); line-height: 1.6; height: 150px; overflow: hidden; position: relative;">
-                    ${meeting.seo_text}...
-                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 50px; background: linear-gradient(to bottom, transparent, var(--text-main));"></div>
-                </div>
-            </div>
-            ` : ''}
+            ${seoTextFormatted}
         `;
+    }
+
+    function escapeRegex(str) {
+        return str.replace(/[.*+?^$\{}()|[\]\\]/g, function(match) {
+            return '\\\\' + match;
+        });
     }
 
     function highlightText(text, query) {
         if (!query) return text;
-        const regex = new RegExp(`(${query.replace(/[.*+?^$\{}()|[\]\\]/g, '\\$&')})`, 'gi');
+        var regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
         return text.replace(regex, '<span class="highlight">$1</span>');
     }
 
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        const filtered = meetingData.filter(m => 
-            m.name.toLowerCase().includes(query) || 
-            m.category.toLowerCase().includes(query) ||
-            m.summary.toLowerCase().includes(query) ||
-            m.displayDate.toLowerCase().includes(query)
-        );
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        var query = e.target.value.toLowerCase();
+        var filtered = meetingData.filter(function(m) {
+            if (m.name) { if (m.name.toLowerCase().includes(query)) return true; }
+            if (m.category) { if (m.category.toLowerCase().includes(query)) return true; }
+            if (m.summary) { if (m.summary.toLowerCase().includes(query)) return true; }
+            if (m.displayDate) { if (m.displayDate.toLowerCase().includes(query)) return true; }
+            return false;
+        });
         renderList(filtered, query);
     });
 
     // Init
     loadData();
+})();
 </script>
 
 </body>

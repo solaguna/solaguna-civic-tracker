@@ -150,9 +150,9 @@ Note: If an address or APN is not mentioned, set the field to null.
             else:
                 return "Failed to parse JSON output.", []
         else:
-            return f"AI Summary failed (Status {res.status_code}).", []
+            return f"Executive Summary temporarily unavailable (Status {res.status_code}).", []
     except Exception as e:
-        return f"AI generation failed: {str(e)}", []
+        return f"Executive Summary processing failed.", []
 
 def send_brevo_email(email, meeting_name, meeting_date, agenda_url, topics, summary):
     brevo_key = os.environ.get('BREVO_API_KEY')
@@ -286,6 +286,8 @@ def scrape_meetings():
                 
                 if agenda_url:
                     try:
+                        import time
+                        time.sleep(3) # Delay to prevent OpenAI 429 Rate Limits
                         agenda_res = requests.get(agenda_url, headers=headers, timeout=30, verify=False)
                         if agenda_res.status_code == 200:
                             if agenda_res.content.lstrip().startswith(b'%PDF'):
@@ -314,7 +316,7 @@ def scrape_meetings():
                                         # Mark as processed
                                         sent_alerts.append(agenda_url)
                                 else:
-                                    summary = "AI Summary: Configure API key for full AI digest."
+                                    summary = "Executive Summary pending API configuration."
                             else:
                                 summary = f"Agenda text too short or unreadable. Length: {len(extracted_text)}"
                     except Exception as e:
