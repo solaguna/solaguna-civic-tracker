@@ -5,6 +5,11 @@ import os
 import re
 import io
 import csv
+import urllib3
+
+# Suppress the insecure request warnings since Granicus S3 uses mismatched SSL certs
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 try:
     import pypdf
 except ImportError:
@@ -166,7 +171,7 @@ def scrape_meetings():
     headers = {"User-Agent": "Mozilla/5.0"}
     
     print("Fetching Granicus portal...")
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, verify=False)
     if response.status_code != 200:
         print(f"Failed to fetch {url}")
         return
@@ -234,7 +239,7 @@ def scrape_meetings():
                 
                 if agenda_url:
                     try:
-                        agenda_res = requests.get(agenda_url, headers=headers, timeout=30)
+                        agenda_res = requests.get(agenda_url, headers=headers, timeout=30, verify=False)
                         if agenda_res.status_code == 200:
                             if agenda_res.content.lstrip().startswith(b'%PDF'):
                                 extracted_text = extract_pdf_text(agenda_res.content)
