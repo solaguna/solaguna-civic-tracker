@@ -21,7 +21,7 @@ def clean_text(html_content):
 def extract_pdf_text(pdf_bytes):
     """Extract text from a PDF byte stream"""
     if not pypdf:
-        return "PDF Parsing not available."
+        return "ERROR_PYPDF_MISSING"
     try:
         pdf_file = io.BytesIO(pdf_bytes)
         reader = pypdf.PdfReader(pdf_file)
@@ -35,7 +35,7 @@ def extract_pdf_text(pdf_bytes):
         text = re.sub(r'\s+', ' ', text)
         return text.strip()
     except Exception as e:
-        return f"Failed to parse PDF: {str(e)}"
+        return f"ERROR_PDF_PARSE: {str(e)}"
 
 def generate_ai_summary(text):
     """
@@ -145,18 +145,23 @@ def scrape_meetings():
                 
                 if agenda_url:
                     try:
-                        agenda_res = requests.get(agenda_url, headers=headers, timeout=10)
+                        agenda_res = requests.get(agenda_url, headers=headers, timeout=30)
                         if agenda_res.status_code == 200:
                             # Check if the response is a PDF
-                            if agenda_res.content.startswith(b'%PDF'):
+                            if agenda_res.content.lstrip().startswith(b'%PDF'):
                                 extracted_text = extract_pdf_text(agenda_res.content)
                             else:
                                 extracted_text = clean_text(agenda_res.text)
                                 
-                            if len(extracted_text.strip()) > 50:
+                            if extracted_text.startswith("ERROR_"):
+                                summary = f"System Error: {extracted_text}"
+                            elif len(extracted_text.strip()) > 50:
                                 summary = generate_ai_summary(extracted_text)
+                            else:
+                                summary = f"Agenda text too short or unreadable. Length: {len(extracted_text)}"
                     except Exception as e:
                         print(f"Error fetching agenda {agenda_url}: {e}")
+                        summary = f"Network Error: {str(e)}"
                 
                 database.append({
                     "category": category,
