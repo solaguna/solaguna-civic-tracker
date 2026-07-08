@@ -1,15 +1,6 @@
 [
   {
     "category": "Upcoming Events",
-    "name": "3:30 p.m. Closed Session; 5:00 p.m. Regular City Council Meeting",
-    "date": "July 07, 2026 - 05:00 PM",
-    "agenda_url": "https://lagunabeachcity.granicus.com/AgendaViewer.php?view_id=3&event_id=3704",
-    "video_url": null,
-    "summary": "<ul><li>Congressman Dave Min presentation of check for federal funding for the South Laguna Fire Station and Laguna Canyon Road improvements projects. <div class=\"action-pills\"><a href=\"https://www.google.com/maps/search/?api=1&query=505%20Forest%20Avenue%2C%20Laguna%20Beach%2C%20CA%2092651+Laguna+Beach+CA\" target=\"_blank\" class=\"pill-btn\">\ud83d\udccd Google Maps</a><a href=\"https://gis.lagunabeachcity.net/Html5Viewer/index.html?viewer=LagunaBeachPublicGIS\" target=\"_blank\" class=\"pill-btn\">\ud83d\uddfa\ufe0f City GIS</a></div></li><li>Resolution of the City Council of the City of Laguna Beach to confirm weed abatement assessment roll.</li></ul>",
-    "seo_text": "Meeting Subscribe Enter your email address below to receive updates related to this item Invalid E-mail Cancel Subscribe Success You will now receive updates related to this item Close Hide Video Show Video 3:30pm Closed Session; 5:00pm Regular City Council Meeting - 7/8/2026 12:00:00 AM Scan this QR Code for an electronic copy of the City Council Agenda CITY OF LAGUNA BEACH CITY COUNCIL AGENDA JULY 7, 2026 COUNCIL CHAMBERS \u2013 505 FOREST AVENUE, LAGUNA BEACH, CA 92651 REGULAR MEETING \u2013 5:00 P.M. "
-  },
-  {
-    "category": "Upcoming Events",
     "name": "Administrative Community Development Director Meeting",
     "date": "July 08, 2026 - 03:00 PM",
     "agenda_url": "https://lagunabeachcity.granicus.com/AgendaViewer.php?view_id=3&event_id=3301",
@@ -84,6 +75,15 @@
     "category": "Upcoming Events",
     "name": "4:00 p.m. Closed Session; 5:00 p.m. Regular City Council Meeting",
     "date": "July 21, 2026 - 05:00 PM",
+    "agenda_url": null,
+    "video_url": null,
+    "summary": "Agenda not available.",
+    "seo_text": ""
+  },
+  {
+    "category": "Upcoming Events",
+    "name": "Housing and Human Services Committee",
+    "date": "July 22, 2026 - 06:00 PM",
     "agenda_url": null,
     "video_url": null,
     "summary": "Agenda not available.",
