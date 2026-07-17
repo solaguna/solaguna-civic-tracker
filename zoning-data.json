@@ -15510,9 +15510,7 @@
                                     }
                         ]
             }
-];
-
-        // The translated database content for specific chapters,
+],
 "chapterDatabase": {
             "c1-04": {
                         "shortTitle": "Appeals Process for Fines",
