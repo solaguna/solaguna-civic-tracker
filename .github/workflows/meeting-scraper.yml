@@ -3,7 +3,7 @@ name: Civic Meeting Scraper
 on:
   schedule:
     # Run at 2:00 AM PST (10:00 AM UTC) every day
-    - cron: '0 10 * * *'
+    - cron: '0 16 * * *'
   workflow_dispatch: # Allow manual trigger
 
 permissions:
