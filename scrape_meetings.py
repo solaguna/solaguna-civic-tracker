@@ -30,10 +30,10 @@ def extract_pdf_text(pdf_bytes):
         pdf_file = io.BytesIO(pdf_bytes)
         reader = pypdf.PdfReader(pdf_file)
         text = ""
-        for page in reader.pages[:10]:
+        for i, page in enumerate(reader.pages[:10]):
             extracted = page.extract_text()
             if extracted:
-                text += extracted + "\n"
+                text += f"[Page {i+1}] {extracted}\n"
         text = re.sub(r'\s+', ' ', text)
         return text.strip()
     except Exception as e:
@@ -69,8 +69,8 @@ def get_subscribers():
 
 import urllib.parse
 
-def evaluate_alerts_and_summarize(text, meeting_name, subscribers, api_key):
-    # This single LLM call generates the summary AND evaluates alerts to save tokens
+def evaluate_alerts_and_summarize(text, meeting_name, matched_topics, api_key):
+    # This single LLM call generates the summary
     url = "https://api.openai.com/v1/responses"
     headers = {
         "Content-Type": "application/json",
@@ -82,14 +82,11 @@ def evaluate_alerts_and_summarize(text, meeting_name, subscribers, api_key):
 
 Agenda Text:
 {text[:8000]}
-
-TASK: Evaluate the agenda against the following user alert topics. Return the index numbers of users whose topics are highly relevant to this agenda.
-
-USERS:
 """
     
-    for i, sub in enumerate(subscribers):
-        prompt += f"[{i}] {sub['topics']}\n"
+    if matched_topics:
+        topics_str = ", ".join(matched_topics)
+        prompt += f"\nCRITICAL INSTRUCTION: The following tracked keywords were explicitly found in this agenda: {topics_str}. You MUST include a dedicated summary item for each of these keywords explaining their context in the meeting.\n"
         
     prompt += """
 Output JSON exactly in this format:
@@ -97,13 +94,13 @@ Output JSON exactly in this format:
   "summary_items": [
     {
       "text": "The plain text description of the agenda item...",
+      "page_number": 2,
       "address": "341 Holly Street", 
       "apn": "496-035-01"
     }
-  ],
-  "alert_matches": [0, 2]
+  ]
 }
-Note: If an address or APN is not mentioned, set the field to null.
+Note: If an address or APN is not mentioned, set the field to null. If a page number is unknown, set it to null.
 """
 
     data = {
@@ -129,30 +126,32 @@ Note: If an address or APN is not mentioned, set the field to null.
                     summary_html += "<li>No major items found.</li>"
                     
                 for item in items:
-                    summary_html += f"<li>{item.get('text', '')}"
+                    page_str = f" <strong style='color:#4ab58e;'>(Page {item.get('page_number')})</strong>" if item.get('page_number') else ""
+                    summary_html += f"<li style='margin-bottom: 12px; line-height: 1.6;'>{item.get('text', '')}{page_str}"
                     addr = item.get("address")
                     apn = item.get("apn")
                     
                     if addr or apn:
-                        summary_html += ' <div class="action-pills">'
+                        summary_html += ' <div style="margin-top: 8px;">'
+                        pill_style = "display:inline-block; margin-right:8px; margin-bottom:8px; padding:4px 10px; background:#e6f4ea; color:#4ab58e; text-decoration:none; border-radius:50px; font-size:11px; font-weight:600; border:1px solid #c2e7cc;"
                         if addr:
                             addr_encoded = urllib.parse.quote(addr)
-                            summary_html += f'<a href="https://www.google.com/maps/search/?api=1&query={addr_encoded}+Laguna+Beach+CA" target="_blank" class="pill-btn">📍 Google Maps</a>'
-                            summary_html += '<a href="https://gis.lagunabeachcity.net/Html5Viewer/index.html?viewer=LagunaBeachPublicGIS" target="_blank" class="pill-btn">🗺️ City GIS</a>'
+                            summary_html += f'<a href="https://www.google.com/maps/search/?api=1&query={addr_encoded}+Laguna+Beach+CA" target="_blank" style="{pill_style}">&nbsp;📍 Google Maps&nbsp;</a>'
+                            summary_html += f'<a href="https://gis.lagunabeachcity.net/Html5Viewer/index.html?viewer=LagunaBeachPublicGIS" target="_blank" style="{pill_style}">&nbsp;🗺️ City GIS&nbsp;</a>'
                         if apn:
-                            summary_html += f'<a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CPlanning%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22{apn}%22%7D" target="_blank" class="pill-btn">📄 Planning Files</a>'
-                            summary_html += f'<a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CBuilding%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22{apn}%22%7D" target="_blank" class="pill-btn">🏗️ Building Files</a>'
+                            summary_html += f'<a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CPlanning%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22{apn}%22%7D" target="_blank" style="{pill_style}">&nbsp;📄 Planning Files&nbsp;</a>'
+                            summary_html += f'<a href="https://portal.laserfiche.com/Portal/Search.aspx?repo=r-1645a77d&searchcommand=%7BLF%3ALookin%3D%22%5CCommunity+Development%5CBuilding%22%7D+%26+%7B%5B%5D%3A%5BAPN%5D+%3D+%22{apn}%22%7D" target="_blank" style="{pill_style}">&nbsp;🏗️ Building Files&nbsp;</a>'
                         summary_html += '</div>'
                     summary_html += "</li>"
                 summary_html += "</ul>"
                 
-                return summary_html, parsed.get("alert_matches", [])
+                return summary_html
             else:
-                return "Failed to parse JSON output.", []
+                return "Failed to parse JSON output."
         else:
-            return f"Executive Summary temporarily unavailable (Status {res.status_code}).", []
+            return f"Executive Summary temporarily unavailable (Status {res.status_code})."
     except Exception as e:
-        return f"Executive Summary processing failed.", []
+        return f"Executive Summary processing failed."
 
 def send_brevo_email(email, meeting_name, meeting_date, agenda_url, topics, summary):
     brevo_key = os.environ.get('BREVO_API_KEY')
@@ -302,18 +301,25 @@ def scrape_meetings():
                                 if api_key:
                                     # ONLY run alert evaluation if we haven't processed this agenda yet
                                     is_new_agenda = agenda_url not in sent_alerts
+                                    matched_subs = []
+                                    matched_topics = set()
                                     
-                                    # If new, evaluate against ALL subscribers. If old, just get a simple summary (or pass empty subs list to save tokens)
-                                    subs_to_check = subscribers if is_new_agenda else []
+                                    if is_new_agenda:
+                                        text_lower = extracted_text.lower()
+                                        for sub in subscribers:
+                                            user_topics = [t.strip().lower() for t in sub['topics'].split(',')]
+                                            for t in user_topics:
+                                                if t and t in text_lower:
+                                                    matched_subs.append(sub)
+                                                    matched_topics.add(t)
+                                                    break
                                     
-                                    summary, matches = evaluate_alerts_and_summarize(extracted_text, name, subs_to_check, api_key)
+                                    summary = evaluate_alerts_and_summarize(extracted_text, name, list(matched_topics), api_key)
                                     
-                                    if is_new_agenda and matches:
-                                        for match_idx in matches:
-                                            if match_idx < len(subscribers):
-                                                sub = subscribers[match_idx]
-                                                send_brevo_email(sub['email'], name, date, agenda_url, sub['topics'], summary)
-                                        # Mark as processed
+                                    if is_new_agenda:
+                                        for sub in matched_subs:
+                                            send_brevo_email(sub['email'], name, date, agenda_url, sub['topics'], summary)
+                                        # Mark as processed whether there was a match or not
                                         sent_alerts.append(agenda_url)
                                 else:
                                     summary = "Executive Summary pending API configuration."
