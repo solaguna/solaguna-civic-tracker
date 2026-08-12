@@ -206,10 +206,12 @@ def scrape_meetings():
     api_key = os.environ.get('OPENAI_API_KEY')
     subscribers = get_subscribers()
     
-    # Load previously sent alerts to avoid spamming
+    # Load previously processed agendas to avoid spamming duplicates.
+    # We load this from the tracked meetings_ai.json since it persists across GitHub Actions runs!
     try:
-        with open('sent_alerts.json', 'r') as f:
-            sent_alerts = json.load(f)
+        with open('meetings_ai.json', 'r', encoding='utf-8') as f:
+            old_meetings = json.load(f)
+            sent_alerts = [m.get('agenda_url') for m in old_meetings if m.get('agenda_url')]
     except:
         sent_alerts = []
 
@@ -347,9 +349,6 @@ def scrape_meetings():
             
     with open('meetings_ai.json', 'w', encoding='utf-8') as f:
         json.dump(database, f, indent=2)
-        
-    with open('sent_alerts.json', 'w', encoding='utf-8') as f:
-        json.dump(sent_alerts, f, indent=2)
         
     print(f"Successfully scraped and processed {len(database)} meetings.")
 
